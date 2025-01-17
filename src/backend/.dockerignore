@@ -1,0 +1,77 @@
+node_modules
+dist
+coverage
+__tests__
+test
+*.test.ts
+jest.config.ts
+
+# Environment and configuration files
+.env
+.env.*
+*.log
+.git
+.gitignore
+.vscode
+
+# Documentation
+*.md
+README.md
+
+# Python specific
+*.pyc
+__pycache__
+*.egg-info
+
+# .NET specific
+bin
+obj
+
+# Service-specific exclusions
+# API Gateway
+src/backend/api-gateway/test
+src/backend/api-gateway/coverage
+
+# AI Engine
+src/backend/ai-engine/tests
+src/backend/ai-engine/*.egg-info
+
+# Document Service
+src/backend/document-service/test
+src/backend/document-service/bin
+src/backend/document-service/obj
+
+# Distribution Service
+src/backend/distribution-service/test
+src/backend/distribution-service/coverage
+
+# Transcription Service
+src/backend/transcription-service/test
+src/backend/transcription-service/coverage
+
+# IDE and editor files
+.idea
+.vs
+*.suo
+*.user
+*.sln.docstates
+
+# Temporary files
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Build and package files
+*.tgz
+*.tar.gz
+*.zip
+*.rar
+
+# Debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local development files
+docker-compose.override.yml

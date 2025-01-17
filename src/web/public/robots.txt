@@ -1,0 +1,22 @@
+# Controls web crawler access to protect sensitive meeting data while allowing public content indexing
+# Last updated: 2024
+
+User-agent: *
+
+# Allow public content
+Allow: /
+
+# Protect sensitive paths and data
+Disallow: /api/
+Disallow: /meeting/
+Disallow: /minutes/
+Disallow: /auth/
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$
+
+# Control crawler rate
+Crawl-delay: 10
+
+# XML sitemap location
+Sitemap: https://{domain}/sitemap.xml

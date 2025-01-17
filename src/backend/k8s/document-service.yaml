@@ -1,0 +1,154 @@
+# Kubernetes v1.25+
+# Document Service Deployment and Service Configuration
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-service
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    service: document
+    environment: production
+    version: 1.0.0
+  annotations:
+    kubernetes.io/change-cause: "Initial deployment of document service"
+    service.istio.io/canonical-name: "document-service"
+    service.istio.io/canonical-revision: "v1"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: meeting-minutes
+      service: document
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: meeting-minutes
+        service: document
+        version: 1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3003"
+        prometheus.io/path: "/metrics"
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+      - name: document-service
+        image: meeting-minutes/document-service:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 3003
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        envFrom:
+        - configMapRef:
+            name: document-service-config
+        - secretRef:
+            name: document-service-secrets
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3003
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3003
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: 3003
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 30
+        volumeMounts:
+        - name: templates
+          mountPath: /app/templates
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: templates
+        configMap:
+          name: document-templates
+      - name: tmp
+        emptyDir: {}
+      - name: config
+        configMap:
+          name: document-service-config
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: meeting-minutes
+                  service: document
+              topologyKey: kubernetes.io/hostname
+      terminationGracePeriodSeconds: 60
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-service
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    service: document
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 3003
+    targetPort: 3003
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: meeting-minutes
+    service: document

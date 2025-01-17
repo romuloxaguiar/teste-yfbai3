@@ -1,0 +1,68 @@
+# Prometheus Recording Rules Configuration v2.45.0
+# Defines pre-computed metrics and aggregations for efficient querying and visualization
+# in the Automated Meeting Minutes System
+
+groups:
+  # Service-level metrics aggregations
+  - name: service_metrics
+    interval: 5m
+    rules:
+      # Error rate calculation per service
+      - record: job:error_rate:ratio5m
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (job) / sum(rate(http_requests_total[5m])) by (job)
+        labels:
+          severity: warning
+
+      # 95th percentile request duration
+      - record: job:request_duration_seconds:p95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (job, le))
+        labels:
+          percentile: "95"
+
+      # 99th percentile request duration
+      - record: job:request_duration_seconds:p99
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (job, le))
+        labels:
+          percentile: "99"
+
+  # Resource utilization metrics
+  - name: resource_usage
+    interval: 5m
+    rules:
+      # CPU usage rate per service
+      - record: job:cpu_usage:rate5m
+        expr: sum(rate(process_cpu_seconds_total[5m])) by (job)
+        labels:
+          resource: cpu
+
+      # Memory usage per service
+      - record: job:memory_usage:bytes
+        expr: sum(process_resident_memory_bytes) by (job)
+        labels:
+          resource: memory
+
+  # AI model performance metrics
+  - name: ai_performance
+    interval: 5m
+    rules:
+      # Average model accuracy
+      - record: job:ai_model_accuracy:avg5m
+        expr: avg_over_time(ai_model_accuracy_percent[5m])
+        labels:
+          metric: accuracy
+
+      # Average processing time
+      - record: job:ai_processing_time:avg5m
+        expr: avg_over_time(ai_processing_duration_seconds[5m])
+        labels:
+          metric: processing_time
+
+  # Distribution service metrics
+  - name: distribution_metrics
+    interval: 5m
+    rules:
+      # Success rate for minutes distribution
+      - record: job:distribution_success_rate:ratio5m
+        expr: sum(rate(distribution_success_total[5m])) / sum(rate(distribution_attempts_total[5m]))
+        labels:
+          metric: success_rate

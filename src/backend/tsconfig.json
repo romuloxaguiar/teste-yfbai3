@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "CommonJS",
+    "lib": ["ES2021"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "composite": true,
+    "incremental": true,
+    "noEmitOnError": true,
+    "strictTemplates": true,
+    "declarationMap": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./shared/types"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "shared/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/dist",
+    "**/*.js"
+  ],
+  "references": [
+    {
+      "path": "./shared/types"
+    }
+  ]
+}

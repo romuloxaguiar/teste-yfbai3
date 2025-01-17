@@ -1,0 +1,223 @@
+/* global.css - Core global styles for Teams-integrated meeting minutes application */
+/* @fluentui/react ^8.0.0 - Microsoft Fluent UI design system integration */
+
+@import './variables.css';
+@import '@fluentui/react/dist/sass/variables';
+
+/* Enhanced CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  contain: content;
+  content-visibility: auto;
+  will-change: auto;
+}
+
+/* Base Styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  background: var(--color-background-default);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+  overflow-x: hidden;
+}
+
+/* Typography System */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+}
+
+h1 { font-size: var(--font-size-xxl); }
+h2 { font-size: var(--font-size-xl); }
+h3 { font-size: var(--font-size-lg); }
+h4 { font-size: var(--font-size-md); }
+h5, h6 { font-size: var(--font-size-sm); }
+
+p {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-secondary);
+}
+
+/* Enhanced Accessibility */
+:focus,
+:focus-visible,
+[data-focus-visible-added] {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-outline-offset);
+  box-shadow: var(--shadow-focus);
+  z-index: 1;
+}
+
+/* Layout Utilities */
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: var(--container-padding-mobile);
+  container-type: inline-size;
+  contain: layout style paint;
+}
+
+.grid {
+  display: grid;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.flex {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+/* Responsive Design - Mobile First */
+@media (min-width: 320px) and (max-width: 767px) {
+  :root {
+    font-size: clamp(14px, 4vw, 16px);
+  }
+  
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .container {
+    padding: var(--container-padding-mobile);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    font-size: clamp(16px, 3vw, 18px);
+  }
+  
+  .grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  
+  .container {
+    padding: var(--container-padding-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    font-size: clamp(18px, 2vw, 20px);
+  }
+  
+  .grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+  
+  .container {
+    padding: var(--container-padding-desktop);
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+  
+  body {
+    background: var(--color-background-default);
+    color: var(--color-text-primary);
+  }
+}
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+  * {
+    forced-color-adjust: auto;
+  }
+  
+  :focus {
+    outline: var(--border-width-thick) solid ButtonText;
+  }
+  
+  .container,
+  .grid,
+  .flex {
+    border: var(--border-width-thin) solid ButtonText;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print Styles */
+@media print {
+  * {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  @page {
+    margin: 2cm;
+  }
+}
+
+/* Utility Classes */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-break {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}

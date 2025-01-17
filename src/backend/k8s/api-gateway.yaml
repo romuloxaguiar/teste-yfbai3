@@ -1,0 +1,145 @@
+# API Gateway Kubernetes Configuration
+# Version: 1.0.0
+# Kubernetes Version: v1.25+
+# Description: Production deployment configuration for API Gateway service
+
+---
+# API Gateway Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    component: api-gateway
+    environment: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: meeting-minutes
+      component: api-gateway
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: meeting-minutes
+        component: api-gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: api-gateway
+        image: meeting-minutes/api-gateway:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        resources:
+          requests:
+            cpu: "750m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1.5Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 20
+          periodSeconds: 5
+        envFrom:
+        - configMapRef:
+            name: meeting-minutes-config
+        - secretRef:
+            name: meeting-minutes-secrets
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+
+---
+# API Gateway Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-service
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    component: api-gateway
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: meeting-minutes
+    component: api-gateway
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-gateway-hpa
+  namespace: meeting-minutes
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-gateway
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-gateway-network-policy
+  namespace: meeting-minutes
+spec:
+  podSelector:
+    matchLabels:
+      app: meeting-minutes
+      component: api-gateway
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: meeting-minutes
+    ports:
+    - protocol: TCP
+      port: 3000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: meeting-minutes
+    ports:
+    - protocol: TCP

@@ -1,0 +1,69 @@
+# Loki Configuration v2.8.0
+# Enterprise-grade log aggregation and storage system
+
+# Server configuration for HTTP and gRPC endpoints
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+  http_server_read_timeout: 30s
+  http_server_write_timeout: 30s
+  grpc_server_max_recv_msg_size: 4MB
+  grpc_server_max_send_msg_size: 4MB
+
+# Ingester configuration with high availability settings
+ingester:
+  lifecycler:
+    ring:
+      replication_factor: 3
+      kvstore:
+        store: memberlist
+  chunk_idle_period: 1h  # Global setting
+  chunk_retain_period: 30s
+  max_chunk_age: 2h
+
+# Schema configuration for log storage
+schema_config:
+  configs:
+    - from: "2023-01-01"
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+# Storage configuration for log data and indices
+storage_config:
+  boltdb_shipper:
+    active_index_directory: /loki/index
+    cache_location: /loki/cache
+    shared_store: filesystem
+  filesystem:
+    directory: /loki/chunks
+
+# Limits configuration for resource management
+limits_config:
+  enforce_metric_name: false
+  reject_old_samples: true
+  reject_old_samples_max_age: 168h  # Global retention period
+  ingestion_rate_mb: 10
+  ingestion_burst_size_mb: 20
+  max_entries_limit_per_query: 5000
+
+# Chunk store configuration
+chunk_store_config:
+  max_look_back_period: 168h  # Aligned with retention period
+
+# Table manager configuration for retention
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 168h  # Global retention period
+
+# Compactor configuration for optimizing storage
+compactor:
+  working_directory: /loki/compactor
+  shared_store: filesystem
+  compaction_interval: 10m
+  retention_enabled: true
+  retention_delete_delay: 2h
+  retention_delete_worker_count: 150

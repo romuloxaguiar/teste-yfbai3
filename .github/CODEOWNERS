@@ -1,0 +1,51 @@
+# Unless a later match takes precedence, the core team will be requested for review
+* @organization/core-team
+
+# AI Engine - Machine learning and NLP components
+src/backend/ai-engine/** @organization/ai-team
+
+# Backend Services
+src/backend/api-gateway/** @organization/backend-team
+src/backend/distribution-service/** @organization/backend-team
+src/backend/document-service/** @organization/backend-team
+src/backend/transcription-service/** @organization/backend-team
+
+# Frontend Components
+src/web/** @organization/frontend-team
+
+# Infrastructure and DevOps
+infrastructure/** @organization/devops-team
+src/backend/k8s/** @organization/devops-team
+.github/workflows/** @organization/devops-team
+
+# Shared Backend Components - Requires both backend and core team review
+src/backend/shared/** @organization/backend-team @organization/core-team
+
+# Infrastructure with Security Requirements
+infrastructure/terraform/** @organization/devops-team @organization/security-team
+infrastructure/monitoring/** @organization/devops-team @organization/sre-team
+
+# Test Suites - Requires both QA and respective team review
+src/backend/**/test/** @organization/qa-team @organization/backend-team
+src/web/**/test/** @organization/qa-team @organization/frontend-team
+
+# Documentation
+docs/** @organization/core-team @organization/technical-writers
+
+# Security-sensitive areas require security team review
+security/** @organization/security-team
+**/security.* @organization/security-team
+
+# Database migrations require DBA review
+**/migrations/** @organization/dba-team @organization/backend-team
+
+# Configuration files require DevOps and Security review
+**/*.config.* @organization/devops-team @organization/security-team
+**/*.yaml @organization/devops-team
+**/*.yml @organization/devops-team
+
+# Package dependencies require security review
+**/package.json @organization/security-team @organization/frontend-team
+**/package-lock.json @organization/security-team @organization/frontend-team
+**/requirements.txt @organization/security-team @organization/backend-team
+**/requirements.*.txt @organization/security-team @organization/backend-team

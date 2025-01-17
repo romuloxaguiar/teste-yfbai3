@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 24 24" 
+     xmlns="http://www.w3.org/2000/svg"
+     role="img"
+     aria-label="Meeting Minutes System Logo"
+     focusable="false"
+     preserveAspectRatio="xMidYMid meet">
+  
+  <!-- Base circle representing meeting/collaboration -->
+  <circle 
+    cx="12" 
+    cy="12" 
+    r="10.5"
+    fill="none"
+    stroke="rgb(98, 100, 167)"
+    stroke-width="1.5"
+    stroke-linecap="round"
+  />
+
+  <!-- Document/minutes representation -->
+  <path
+    d="M8 7h8v10H8z"
+    fill="none"
+    stroke="rgb(72, 70, 108)"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Text lines representing content -->
+  <path
+    d="M10 10h4M10 13h4M10 16h4"
+    stroke="rgb(115, 114, 153)"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Clock hands representing time/scheduling -->
+  <path
+    d="M12 12l2.5 2.5M12 12l-0.5-3.5"
+    stroke="rgb(98, 100, 167)"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Metadata -->
+  <metadata>
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+             xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <rdf:Description>
+        <dc:title>Meeting Minutes System Logo</dc:title>
+        <dc:creator>Automated Meeting Minutes System</dc:creator>
+        <dc:description>Logo representing automated meeting minutes functionality within Microsoft Teams</dc:description>
+      </rdf:Description>
+    </rdf:RDF>
+  </metadata>
+
+  <!-- Ensure high contrast mode support -->
+  <style>
+    @media screen and (-ms-high-contrast: active) {
+      circle, path {
+        stroke: currentColor;
+      }
+    }
+  </style>
+</svg>

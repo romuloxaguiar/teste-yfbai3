@@ -1,0 +1,232 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "AI Model Performance Metrics Dashboard for Meeting Minutes System",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Topic Detection Accuracy",
+      "type": "timeseries",
+      "datasource": "prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "rate(ai_topic_detection_correct_count[5m]) / rate(ai_topic_detection_total_count[5m]) * 100",
+          "legendFormat": "Accuracy %",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 90,
+          "yaxis": "left"
+        },
+        {
+          "colorMode": "warning",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 95,
+          "yaxis": "left"
+        }
+      ],
+      "options": {
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "title": "Action Item Recognition Performance",
+      "type": "timeseries", 
+      "datasource": "prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "expr": "rate(ai_action_item_true_positives[5m]) / (rate(ai_action_item_true_positives[5m]) + rate(ai_action_item_false_positives[5m])) * 100",
+          "legendFormat": "Precision %",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 85,
+          "yaxis": "left"
+        },
+        {
+          "colorMode": "warning",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 90,
+          "yaxis": "left"
+        }
+      ]
+    },
+    {
+      "title": "Summary Generation Quality",
+      "type": "timeseries",
+      "datasource": "prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "avg(ai_summary_rouge_score) by (type)",
+          "legendFormat": "ROUGE-{{type}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 80,
+          "yaxis": "left"
+        },
+        {
+          "colorMode": "warning",
+          "fill": true,
+          "line": true,
+          "op": "lt",
+          "value": 85,
+          "yaxis": "left"
+        }
+      ]
+    },
+    {
+      "title": "Processing Time per Meeting",
+      "type": "timeseries",
+      "datasource": "prometheus",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "targets": [
+        {
+          "expr": "rate(ai_processing_duration_seconds_sum[5m]) / rate(ai_processing_duration_seconds_count[5m])",
+          "legendFormat": "Avg Processing Time (s)",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [
+        {
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "value": 300,
+          "yaxis": "left"
+        }
+      ]
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 30,
+  "style": "dark",
+  "tags": ["ai", "performance", "monitoring"],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "now-24h",
+          "value": "now-24h"
+        },
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Time Range",
+        "multi": false,
+        "name": "timeRange",
+        "options": [
+          {
+            "selected": true,
+            "text": "Last 24 hours",
+            "value": "now-24h"
+          },
+          {
+            "selected": false,
+            "text": "Last 7 days",
+            "value": "now-7d"
+          },
+          {
+            "selected": false,
+            "text": "Last 30 days",
+            "value": "now-30d"
+          }
+        ],
+        "query": "now-24h,now-7d,now-30d",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "AI Model Performance Metrics",
+  "uid": "ai-performance-metrics",
+  "version": 1
+}

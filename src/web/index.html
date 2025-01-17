@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <!-- Primary Meta Tags -->
+    <title>Automated Meeting Minutes</title>
+    <meta name="description" content="AI-powered meeting minutes generation for Microsoft Teams">
+    <meta name="application-name" content="Meeting Minutes">
+    <meta name="theme-color" content="#464775">
+    
+    <!-- Microsoft Teams Integration -->
+    <meta name="ms-teams-title" content="Automated Meeting Minutes">
+    <meta name="ms-teams-description" content="AI-powered meeting minutes generation and distribution">
+    <meta name="ms-teams-color" content="#464775">
+    
+    <!-- Progressive Web App -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Meeting Minutes">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Security Headers -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self' https://*.microsoft.com; script-src 'self' 'unsafe-inline' https://*.microsoft.com; style-src 'self' 'unsafe-inline' https://*.microsoft.com; img-src 'self' data: https://*.microsoft.com; connect-src 'self' https://*.microsoft.com">
+
+    <!-- Manifest and Icons -->
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="apple-touch-icon" href="./logo192.png">
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="./static/js/main.js" as="script">
+    <link rel="preload" href="./static/css/main.css" as="style">
+    
+    <!-- Teams Theme Integration -->
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #201f1f;
+                color: #ffffff;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- React Application Root -->
+    <div id="root" 
+         role="application" 
+         aria-label="Automated Meeting Minutes Application"
+         data-teams-theme="default"
+         data-version="%VERSION%">
+    </div>
+
+    <!-- No JavaScript Fallback -->
+    <noscript role="alert" aria-live="assertive">
+        <div style="padding: 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">
+            You need to enable JavaScript to run this application. If you are seeing this message, please contact your system administrator or enable JavaScript in your browser settings.
+        </div>
+    </noscript>
+
+    <!-- Application Entry Point -->
+    <script type="module" src="./src/index.tsx"></script>
+</body>
+</html>

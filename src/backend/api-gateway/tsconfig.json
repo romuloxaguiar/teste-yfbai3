@@ -1,0 +1,45 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "CommonJS",
+    "lib": ["ES2021"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "incremental": true,
+    "sourceMap": true,
+    "declaration": true,
+    "paths": {
+      "@middleware/*": ["./src/middleware/*"],
+      "@routes/*": ["./src/routes/*"], 
+      "@config/*": ["./src/config/*"],
+      "@shared/*": ["../shared/*"],
+      "@types/*": ["./src/types/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@services/*": ["./src/services/*"]
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "../shared/types",
+      "./src/types"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "src/**/*.json"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist", 
+    "coverage",
+    "**/*.spec.ts"
+  ]
+}

@@ -1,0 +1,148 @@
+# Kubernetes v1.25+
+# Deployment configuration for Transcription Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transcription-service
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    service: transcription
+    environment: production
+    version: 1.0.0
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3001"
+    prometheus.io/path: "/metrics"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: meeting-minutes
+      service: transcription
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: meeting-minutes
+        service: transcription
+        version: 1.0.0
+    spec:
+      containers:
+      - name: transcription-service
+        image: meeting-minutes/transcription-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3001
+          protocol: TCP
+          name: http
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        envFrom:
+        - configMapRef:
+            name: transcription-service-config
+        - secretRef:
+            name: transcription-service-secrets
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3001
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 2
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+      terminationGracePeriodSeconds: 60
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: service
+                  operator: In
+                  values:
+                  - transcription
+              topologyKey: kubernetes.io/hostname
+---
+# Service configuration for Transcription Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: transcription-service
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    service: transcription
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3001
+    targetPort: 3001
+    protocol: TCP
+    name: http
+  selector:
+    app: meeting-minutes
+    service: transcription
+---
+# HorizontalPodAutoscaler configuration for Transcription Service
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: transcription-service-hpa
+  namespace: meeting-minutes
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: transcription-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 120

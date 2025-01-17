@@ -1,0 +1,61 @@
+node_modules/
+**/node_modules/
+venv/
+.python-version
+
+# Environment files
+.env
+.env.*
+*.env.docker
+appsettings.*.json
+
+# Build outputs
+dist/
+**/dist/
+bin/
+obj/
+*.user
+*.suo
+
+# Test and coverage
+coverage/
+**/coverage/
+.coverage
+TestResults/
+.pytest_cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files
+.DS_Store
+.docker/
+
+# Database
+*.dbmdl
+*.jfm
+
+# Certificates and secrets
+*.pfx
+*.key
+*.azurePubxml
+*.pubxml
+
+# Cache
+*.cache

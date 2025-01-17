@@ -1,0 +1,138 @@
+# Security scanning workflow for Automated Meeting Minutes System
+# Performs comprehensive security analysis including:
+# - Dependency vulnerability scanning
+# - Static Application Security Testing (SAST)
+# - Container vulnerability scanning  
+# - Secret detection
+
+name: Security Scan
+
+# Trigger on schedule and code changes
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight UTC
+  push:
+    branches: 
+      - main
+      - develop
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    types: [opened, synchronize, reopened]
+
+# Environment variables
+env:
+  NODE_VERSION: '16.x'
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # Setup Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # Setup Python environment  
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      # Dependency vulnerability scanning
+      - name: Scan Node.js dependencies
+        uses: snyk/actions/node@v0.4.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      # SAST Analysis with CodeQL
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript, python
+          queries: security-extended
+
+      - name: Build codebase
+        run: |
+          npm ci
+          npm run build
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:javascript,python"
+
+      # Container vulnerability scanning
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.10.0
+        with:
+          scan-type: 'fs,config'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      # Secret detection
+      - name: Detect secrets
+        run: |
+          pip install detect-secrets
+          detect-secrets scan . > secrets-results.json
+          
+      # Upload scan results
+      - name: Upload security scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+          category: container-security
+
+      # Generate consolidated report
+      - name: Generate security report
+        run: |
+          echo "# Security Scan Results" > security-report.md
+          echo "## Dependency Vulnerabilities" >> security-report.md
+          cat snyk-results.json >> security-report.md
+          echo "## SAST Analysis" >> security-report.md
+          cat codeql-results.sarif >> security-report.md
+          echo "## Container Vulnerabilities" >> security-report.md
+          cat trivy-results.sarif >> security-report.md
+          echo "## Secret Detection" >> security-report.md
+          cat secrets-results.json >> security-report.md
+
+      # Upload report artifact
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.md
+          retention-days: 30
+
+      # Post results to security dashboard
+      - name: Post to security dashboard
+        if: always()
+        run: |
+          curl -X POST ${{ secrets.SECURITY_DASHBOARD_URL }} \
+            -H "Authorization: Bearer ${{ secrets.DASHBOARD_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data-binary @security-report.md

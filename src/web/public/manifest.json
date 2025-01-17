@@ -1,0 +1,150 @@
+{
+  "short_name": "Meeting Minutes",
+  "name": "Automated Meeting Minutes",
+  "description": "AI-powered meeting minutes generation for Microsoft Teams",
+  "version": "1.0.0",
+  "manifest_version": 2,
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16", 
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple-touch-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#464775",
+  "background_color": "#ffffff",
+  "scope": "/",
+  "orientation": "any",
+  "categories": [
+    "productivity",
+    "business"
+  ],
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "iarc_rating_id": "",
+  "screenshots": [
+    {
+      "src": "screenshot-desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "platform": "desktop"
+    },
+    {
+      "src": "screenshot-mobile.png", 
+      "sizes": "750x1334",
+      "type": "image/png",
+      "platform": "mobile"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Meeting",
+      "short_name": "New",
+      "description": "Start a new meeting",
+      "url": "/new-meeting",
+      "icons": [
+        {
+          "src": "new-meeting.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Recent Minutes",
+      "short_name": "Recent", 
+      "description": "View recent meeting minutes",
+      "url": "/recent",
+      "icons": [
+        {
+          "src": "recent.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "minutes",
+          "accept": [
+            "application/pdf",
+            ".pdf"
+          ]
+        }
+      ]
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+minutes",
+      "url": "/minutes?id=%s"
+    }
+  ],
+  "related_applications": [],
+  "configurableTabs": [
+    {
+      "configurationUrl": "https://teams.microsoft.com/l/app/configure",
+      "canUpdateConfiguration": true,
+      "scopes": [
+        "team",
+        "groupchat"
+      ]
+    }
+  ],
+  "staticTabs": [
+    {
+      "entityId": "dashboard",
+      "name": "Dashboard",
+      "contentUrl": "https://teams.microsoft.com/l/app/dashboard",
+      "websiteUrl": "https://teams.microsoft.com/l/app/dashboard",
+      "scopes": [
+        "personal"
+      ]
+    }
+  ],
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [
+    "*.teams.microsoft.com",
+    "*.sharepoint.com", 
+    "*.azurewebsites.net"
+  ],
+  "crossorigin": "use-credentials",
+  "display_override": [
+    "window-controls-overlay"
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

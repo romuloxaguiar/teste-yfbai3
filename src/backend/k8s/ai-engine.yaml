@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-engine
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    service: ai-engine
+    environment: production
+    component: ml-processing
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: meeting-minutes
+      service: ai-engine
+  template:
+    metadata:
+      labels:
+        app: meeting-minutes
+        service: ai-engine
+        component: ml-processing
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3002"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: ai-engine
+        image: meeting-minutes/ai-engine:latest
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+            nvidia.com/gpu: "1"
+          limits:
+            cpu: "4"
+            memory: "8Gi"
+            nvidia.com/gpu: "1"
+        ports:
+        - containerPort: 3002
+          protocol: TCP
+          name: http
+        - containerPort: 3003
+          protocol: TCP
+          name: metrics
+        envFrom:
+        - configMapRef:
+            name: ai-engine-config
+        - secretRef:
+            name: ai-engine-secrets
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      nodeSelector:
+        accelerator: nvidia-tesla
+        kubernetes.azure.com/mode: user
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: service
+                  operator: In
+                  values:
+                  - ai-engine
+              topologyKey: kubernetes.io/hostname

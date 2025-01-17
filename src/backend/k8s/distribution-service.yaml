@@ -1,0 +1,129 @@
+# Kubernetes version: v1.25+
+# Distribution Service Deployment and Service Configuration
+# Purpose: Handles email delivery and Teams notifications for meeting minutes
+# Components: Deployment and Service resources with enhanced security and monitoring
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: distribution-service
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    service: distribution
+    environment: production
+    version: 1.0.0
+    tier: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      service: distribution
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: meeting-minutes
+        service: distribution
+        environment: production
+        version: 1.0.0
+        tier: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3004"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: distribution-service-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+      containers:
+        - name: distribution-service
+          image: meeting-minutes/distribution-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3004
+              protocol: TCP
+              name: http
+            - containerPort: 9090
+              protocol: TCP
+              name: metrics
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          envFrom:
+            - configMapRef:
+                name: distribution-service-config
+            - secretRef:
+                name: distribution-service-secrets
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3004
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3004
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 2
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: service
+                      operator: In
+                      values:
+                        - distribution
+                topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: distribution-service
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    service: distribution
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3004
+      targetPort: 3004
+      protocol: TCP
+      name: http
+    - port: 9090
+      targetPort: 9090
+      protocol: TCP
+      name: metrics
+  selector:
+    service: distribution

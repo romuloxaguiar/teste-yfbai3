@@ -1,0 +1,73 @@
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build outputs
+dist
+build
+*.tsbuildinfo
+
+# Test files and coverage reports
+test
+**/*.test.*
+**/*.spec.*
+coverage
+.nyc_output
+
+# Development tools and IDE
+.git
+.gitignore
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+*.md
+docs
+CHANGELOG
+LICENSE
+
+# Environment and configuration
+.env*
+.env.local
+.env.development
+.env.test
+.env.production
+.dockerignore
+docker-compose*
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache directories
+.npm
+.eslintcache
+.stylelintcache
+.next
+.nuxt
+.cache
+
+# Editor directories
+.idea
+.vscode
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

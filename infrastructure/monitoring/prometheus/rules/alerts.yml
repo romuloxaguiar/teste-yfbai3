@@ -1,0 +1,76 @@
+# Prometheus Alert Rules Configuration v2.45.0
+# Defines critical alerting conditions for the Automated Meeting Minutes System
+# Imports pre-computed metrics from recording.yml for efficient alert evaluation
+
+groups:
+  # Service availability monitoring
+  - name: service_availability
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 5 minutes"
+
+  # Error rate monitoring
+  - name: error_rates
+    rules:
+      - alert: HighErrorRate
+        expr: job:error_rate:ratio5m > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "High error rate for {{ $labels.job }}"
+          description: "Error rate is above 10% for {{ $labels.job }} over 5 minutes"
+
+  # Latency monitoring
+  - name: latency
+    rules:
+      - alert: HighLatency
+        expr: job:request_duration_seconds:p95 > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High latency for {{ $labels.job }}"
+          description: "P95 latency is above 2 seconds for {{ $labels.job }}"
+
+  # AI model performance monitoring
+  - name: ai_performance
+    rules:
+      - alert: LowModelAccuracy
+        expr: job:ai_model_accuracy:avg5m{job="ai-engine"} < 90
+        for: 15m
+        labels:
+          severity: warning
+          team: ml
+        annotations:
+          summary: "Low AI model accuracy"
+          description: "AI model accuracy has dropped below 90% over 15 minutes"
+
+  # Distribution service monitoring
+  - name: distribution
+    rules:
+      - alert: LowDistributionSuccess
+        expr: job:distribution_success_rate:ratio5m{job="distribution-service"} < 0.95
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Low distribution success rate"
+          description: "Minutes distribution success rate is below 95% over 5 minutes"
+
+# Alert thresholds configuration
+alert_thresholds:
+  error_rate: 0.1  # 10% error rate threshold
+  latency_p95: 2   # 2 seconds P95 latency threshold
+  model_accuracy: 90  # 90% AI model accuracy threshold
+  distribution_success: 0.95  # 95% distribution success rate threshold

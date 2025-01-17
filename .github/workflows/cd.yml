@@ -1,0 +1,168 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'infrastructure/**'
+      - 'k8s/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options:
+          - staging
+          - production
+        description: 'Deployment environment'
+      strategy:
+        type: choice
+        options:
+          - blue-green
+          - canary
+        description: 'Deployment strategy'
+
+env:
+  DOCKER_REGISTRY: azurecr.io
+  TERRAFORM_VERSION: '1.5.x'
+  KUBERNETES_VERSION: '1.25'
+  DEPLOYMENT_TIMEOUT: '600s'
+  CANARY_PERCENTAGE: '20'
+
+jobs:
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'production' }}
+      url: ${{ steps.deploy.outputs.app_url }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: latest
+          buildkitd-flags: --debug
+
+      - name: ACR login
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.ACR_REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+
+      - name: Deploy infrastructure
+        id: terraform
+        run: |
+          cd infrastructure/terraform
+          terraform init \
+            -backend-config="storage_account_name=${{ secrets.TF_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_CONTAINER_NAME }}" \
+            -backend-config="key=${{ github.event.inputs.environment || 'production' }}.tfstate"
+          
+          terraform workspace select ${{ github.event.inputs.environment || 'production' }} || \
+            terraform workspace new ${{ github.event.inputs.environment || 'production' }}
+          
+          terraform validate
+          terraform plan -out=tfplan
+          
+          if [ "${{ github.event.inputs.environment }}" != "production" ]; then
+            terraform apply -auto-approve tfplan
+          else
+            terraform apply tfplan
+          fi
+
+      - name: Build and push images
+        id: docker
+        run: |
+          SERVICES=(api-gateway transcription-service ai-engine document-service distribution-service)
+          
+          for service in "${SERVICES[@]}"; do
+            docker buildx build \
+              --platform linux/amd64 \
+              --cache-from type=registry,ref=${{ secrets.ACR_REGISTRY }}/${service}:cache \
+              --cache-to type=registry,ref=${{ secrets.ACR_REGISTRY }}/${service}:cache,mode=max \
+              --build-arg BUILD_VERSION=${GITHUB_SHA} \
+              --tag ${{ secrets.ACR_REGISTRY }}/${service}:${GITHUB_SHA} \
+              --tag ${{ secrets.ACR_REGISTRY }}/${service}:latest \
+              --file ./src/${service}/Dockerfile \
+              --push \
+              ./src/${service}
+          done
+
+      - name: Deploy to AKS
+        id: deploy
+        uses: azure/k8s-deploy@v4
+        with:
+          namespace: ${{ github.event.inputs.environment || 'production' }}
+          manifests: |
+            k8s/namespaces/${{ github.event.inputs.environment || 'production' }}.yaml
+            k8s/services/*.yaml
+            k8s/deployments/*.yaml
+          images: |
+            ${{ secrets.ACR_REGISTRY }}/api-gateway:${GITHUB_SHA}
+            ${{ secrets.ACR_REGISTRY }}/transcription-service:${GITHUB_SHA}
+            ${{ secrets.ACR_REGISTRY }}/ai-engine:${GITHUB_SHA}
+            ${{ secrets.ACR_REGISTRY }}/document-service:${GITHUB_SHA}
+            ${{ secrets.ACR_REGISTRY }}/distribution-service:${GITHUB_SHA}
+          strategy: ${{ github.event.inputs.strategy || 'blue-green' }}
+          timeout: ${{ env.DEPLOYMENT_TIMEOUT }}
+          route-method: ${{ github.event.inputs.strategy == 'canary' && 'canary' || 'service' }}
+          percentage: ${{ github.event.inputs.strategy == 'canary' && env.CANARY_PERCENTAGE || '100' }}
+
+      - name: Run smoke tests
+        run: |
+          kubectl wait --for=condition=available --timeout=300s deployment -l app=api-gateway
+          kubectl wait --for=condition=available --timeout=300s deployment -l app=transcription-service
+          kubectl wait --for=condition=available --timeout=300s deployment -l app=ai-engine
+          kubectl wait --for=condition=available --timeout=300s deployment -l app=document-service
+          kubectl wait --for=condition=available --timeout=300s deployment -l app=distribution-service
+          
+          # Run application-specific health checks
+          for service in api-gateway transcription-service ai-engine document-service distribution-service; do
+            curl -f https://${service}.${{ github.event.inputs.environment || 'production' }}/health || exit 1
+          done
+
+      - name: Monitor deployment
+        run: |
+          kubectl get events --sort-by='.lastTimestamp' -A
+          kubectl get pods,services,ingress -A
+          kubectl top nodes
+          kubectl top pods
+
+      - name: Generate deployment report
+        if: always()
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Environment: ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "Strategy: ${{ github.event.inputs.strategy || 'blue-green' }}" >> $GITHUB_STEP_SUMMARY
+          echo "Commit: ${GITHUB_SHA}" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: meeting-minutes-config
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    environment: production
+    version: 1.0.0
+    managed-by: kubernetes
+data:
+  # API Gateway Service Configuration
+  api-gateway-config:
+    PORT: "3000"
+    NODE_ENV: "production"
+    LOG_LEVEL: "info"
+    LOG_FORMAT: "json"
+    RATE_LIMIT_WINDOW: "60000"
+    RATE_LIMIT_MAX: "1000"
+    CORS_ORIGINS: "https://*.teams.microsoft.com"
+    API_VERSION: "v1"
+    METRICS_PATH: "/metrics"
+    HEALTH_CHECK_PATH: "/health"
+    REQUEST_TIMEOUT: "30000"
+    MAX_PAYLOAD_SIZE: "5242880"  # 5MB in bytes
+
+  # Transcription Service Configuration
+  transcription-service-config:
+    PORT: "3001"
+    NODE_ENV: "production"
+    LOG_LEVEL: "info"
+    LOG_FORMAT: "json"
+    TEAMS_API_VERSION: "v1.0"
+    MAX_CHUNK_SIZE: "1048576"  # 1MB in bytes
+    PROCESSING_TIMEOUT: "300000"  # 5 minutes in milliseconds
+    RETRY_ATTEMPTS: "3"
+    RETRY_DELAY: "1000"  # 1 second in milliseconds
+    METRICS_PATH: "/metrics"
+    HEALTH_CHECK_PATH: "/health"
+    CHUNK_PROCESSING_CONCURRENCY: "5"
+
+  # AI Engine Service Configuration
+  ai-engine-config:
+    PORT: "3002"
+    PYTHON_ENV: "production"
+    LOG_LEVEL: "info"
+    LOG_FORMAT: "json"
+    MODEL_PATH: "/models"
+    BATCH_SIZE: "32"
+    MAX_SEQUENCE_LENGTH: "512"
+    PROCESSING_TIMEOUT: "300000"  # 5 minutes in milliseconds
+    GPU_MEMORY_FRACTION: "0.8"
+    METRICS_PATH: "/metrics"
+    HEALTH_CHECK_PATH: "/health"
+    MODEL_RELOAD_INTERVAL: "3600000"  # 1 hour in milliseconds
+
+  # Document Service Configuration
+  document-service-config:
+    PORT: "3003"
+    NODE_ENV: "production"
+    LOG_LEVEL: "info"
+    LOG_FORMAT: "json"
+    TEMPLATE_PATH: "/templates"
+    PDF_DPI: "300"
+    MAX_FILE_SIZE: "10485760"  # 10MB in bytes
+    PROCESSING_TIMEOUT: "60000"  # 1 minute in milliseconds
+    RETRY_ATTEMPTS: "3"
+    METRICS_PATH: "/metrics"
+    HEALTH_CHECK_PATH: "/health"
+    CONCURRENT_PROCESSING_LIMIT: "10"
+
+  # Distribution Service Configuration
+  distribution-service-config:
+    PORT: "3004"
+    NODE_ENV: "production"
+    LOG_LEVEL: "info"
+    LOG_FORMAT: "json"
+    EMAIL_RETRY_ATTEMPTS: "3"
+    EMAIL_RETRY_DELAY: "5000"  # 5 seconds in milliseconds
+    NOTIFICATION_TIMEOUT: "30000"  # 30 seconds in milliseconds
+    QUEUE_PREFIX: "meeting-minutes"
+    DISTRIBUTION_MODE: "parallel"
+    METRICS_PATH: "/metrics"
+    HEALTH_CHECK_PATH: "/health"
+    MAX_CONCURRENT_DISTRIBUTIONS: "20"
+    DISTRIBUTION_BATCH_SIZE: "50"

@@ -1,0 +1,143 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    component: cache
+    environment: production
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9121"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: meeting-minutes
+      component: cache
+  serviceName: redis
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  template:
+    metadata:
+      labels:
+        app: meeting-minutes
+        component: cache
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - meeting-minutes
+              topologyKey: kubernetes.io/hostname
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsNonRoot: true
+      containers:
+        - name: redis
+          image: redis:6.2-alpine
+          command: ["redis-server"]
+          args: ["/etc/redis/redis.conf"]
+          ports:
+            - containerPort: 6379
+              name: redis
+            - containerPort: 16379
+              name: cluster
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+            - name: redis-config
+              mountPath: /etc/redis
+            - name: redis-secrets
+              mountPath: /etc/redis/secrets
+              readOnly: true
+        - name: redis-exporter
+          image: oliver006/redis_exporter:v1.44.0
+          ports:
+            - containerPort: 9121
+              name: metrics
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+      volumes:
+        - name: redis-config
+          configMap:
+            name: meeting-minutes-config
+        - name: redis-secrets
+          secret:
+            secretName: meeting-minutes-secrets
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: managed-premium
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: meeting-minutes
+  labels:
+    app: meeting-minutes
+    component: cache
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+      name: redis
+    - port: 16379
+      targetPort: 16379
+      name: cluster
+    - port: 9121
+      targetPort: 9121
+      name: metrics
+  selector:
+    app: meeting-minutes
+    component: cache
+  clusterIP: None
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+  namespace: meeting-minutes
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: meeting-minutes
+      component: cache

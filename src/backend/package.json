@@ -90,7 +90,7 @@
     "opossum": "^7.1.0",
     "pdfkit": "^3.0.0",
     "performance-now": "^2.1.0",
-    "pino": "^8.11.0",
+    "pino": "^9.6.0",
     "rate-limiter-flexible": "^2.4.1",
     "reflect-metadata": "^0.1.13",
     "retry-axios": "^3.0.0",

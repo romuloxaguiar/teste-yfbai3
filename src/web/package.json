@@ -24,7 +24,7 @@
     "@tanstack/react-virtual": "^3.0.0",
     "axios": "^1.4.0",
     "crypto": "latest",
-    "date-fns": "^2.30.0",
+    "date-fns": "^4.1.0",
     "intl": "latest",
     "opossum": "^6.0.0",
     "react": "^18.2.0",

@@ -12,7 +12,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.38.0",
+    "@azure/msal-browser": "^4.4.0",
     "@emotion/react": "^11.0.0",
     "@emotion/styled": "^11.0.0",
     "@fluentui/react": "^8.0.0",
